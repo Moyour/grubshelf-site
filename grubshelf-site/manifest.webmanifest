@@ -1,0 +1,13 @@
+{
+  "name": "grubshelf",
+  "short_name": "grubshelf",
+  "description": "Know what's in your kitchen, what's about to turn, and what to actually buy, before you're stood in the aisle guessing.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04342c",
+  "theme_color": "#04342c",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

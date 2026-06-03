@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/grubshelf-site/$1"
+    }
+  ],
+  "functions": {
+    "api/newsletter.js": {
+      "includeFiles": "emails/sample-first-issue.html"
+    }
+  }
+}

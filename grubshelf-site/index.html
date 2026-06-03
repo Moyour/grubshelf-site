@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>grubshelf: the list on the fridge follows you</title>
+  <meta name="description" content="Track your pantry, expiry, and shopping list in one place. Less waste, fewer surprises, and the spinach you forgot about, rescued before it wilts." />
+  <meta name="theme-color" content="#04342c" />
+  <link rel="canonical" href="https://grubshelf.app/" />
+
+  <!-- Icons -->
+  <link rel="icon" href="assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="grubshelf" />
+  <meta property="og:title" content="grubshelf: the list on the fridge follows you" />
+  <meta property="og:description" content="Track your pantry, expiry, and shopping list in one place. Less waste, fewer surprises." />
+  <meta property="og:url" content="https://grubshelf.app/" />
+  <meta property="og:image" content="assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="grubshelf: the list on the fridge follows you" />
+  <meta name="twitter:description" content="Track your pantry, expiry, and shopping list in one place. Less waste, fewer surprises." />
+  <meta name="twitter:image" content="assets/og.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Structured data: SoftwareApplication + FAQ (rich results) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "GrubShelf",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "iOS",
+    "url": "https://grubshelf.app/",
+    "description": "Track your pantry, expiry, and shopping list in one place. Less waste, fewer surprises, and the spinach you forgot about, rescued before it wilts.",
+    "offers": [
+      { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
+      { "@type": "Offer", "name": "Premium (monthly)", "price": "4.99", "priceCurrency": "USD" },
+      { "@type": "Offer", "name": "Premium (yearly)", "price": "53.89", "priceCurrency": "USD" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "How does the pantry track what I have?", "acceptedAnswer": { "@type": "Answer", "text": "Scan a receipt or barcode once and it lands in your pantry: matched, counted, and dated. You see what you've got, how much, and what's about to turn. Filter by expiring, fresh, or running low. No more standing at the fridge guessing." } },
+      { "@type": "Question", "name": "How does scan-to-add work?", "acceptedAnswer": { "@type": "Answer", "text": "Take a photo of your receipt. We read it and match everything to real products. On the first scan you'll confirm a couple of things; after that it's instant. We never keep the photo or the receipt." } },
+      { "@type": "Question", "name": "How does the shopping list know what I already have?", "acceptedAnswer": { "@type": "Answer", "text": "It's linked to your pantry. Items you already have at home show up dimmed with a have-it label, so you don't buy a fourth bottle of olive oil. The list sorts by aisle, works offline in dead zones, and you cross off as you go." } },
+      { "@type": "Question", "name": "How does spend tracking work?", "acceptedAnswer": { "@type": "Answer", "text": "Set a weekly or monthly budget, then log each shop. Scan the receipt and it's split by category for you. You see this month's total, how you're pacing day to day, and where the money actually goes." } },
+      { "@type": "Question", "name": "What notifications do I get?", "acceptedAnswer": { "@type": "Answer", "text": "One default: things expiring tomorrow that you haven't used yet. You can turn it off, but most people keep it on because it's the only one that matters." } },
+      { "@type": "Question", "name": "How does family sharing work?", "acceptedAnswer": { "@type": "Answer", "text": "Pantry, shopping list, spending, and history sync across your household. Free is a shared pantry for two; Premium adds unlimited members. When your partner adds milk at the store, you see it." } },
+      { "@type": "Question", "name": "What platforms is GrubShelf on?", "acceptedAnswer": { "@type": "Answer", "text": "iOS first: iPhone and iPad, launching soon. Android and web are on the roadmap. Join the waiting list and we'll email you the moment it goes live." } },
+      { "@type": "Question", "name": "When can I get the app?", "acceptedAnswer": { "@type": "Answer", "text": "We're putting the final polish on the iOS app now. Join the waiting list and you'll be first in line at launch, plus tips and early feature news along the way." } },
+      { "@type": "Question", "name": "How much will it cost?", "acceptedAnswer": { "@type": "Answer", "text": "Free will be $0: a shared pantry for two, up to 75 items, 2 shopping lists, and 20 barcode scans per month. Premium will be $4.99/month or $53.89/year (save 10%) with unlimited members, items, lists, scans, full analytics, exports, and priority support." } }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <template id="__bundler_thumbnail">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" fill="#04342c"/>
+      <rect x="30" y="42" width="40" height="4" rx="2" fill="#e8a020"/>
+      <rect x="30" y="64" width="40" height="4" rx="2" fill="#e8a020"/>
+      <rect x="33" y="30" width="9" height="12" rx="3" fill="#1d9e75"/>
+      <circle cx="50" cy="35" r="6" fill="#f5cd7e"/>
+      <rect x="58" y="31" width="8" height="11" rx="3" fill="#9fd8bf"/>
+      <circle cx="38" cy="58" r="6" fill="#c2a35a"/>
+      <rect x="47" y="50" width="9" height="14" rx="3" fill="#1d9e75"/>
+      <rect x="60" y="54" width="7" height="10" rx="3" fill="#7fb89f"/>
+    </svg>
+  </template>
+
+  <!-- ===================== STICKY HEADER (appears after hero) ===================== -->
+  <header class="site-header" id="site-header" aria-hidden="true">
+    <a href="#top" class="brand" aria-label="grubshelf home">
+      <img src="assets/wordmark-mint.svg" alt="grubshelf" />
+    </a>
+    <nav class="site-header-nav" aria-label="Primary">
+      <a class="nav-link" href="#vf-features">Features</a>
+      <a class="nav-link" href="#v5-faq">FAQ</a>
+      <a class="nav-cta" href="#vf-waitlist">Get updates</a>
+    </nav>
+  </header>
+
+  <!-- ===================== HERO ===================== -->
+  <div class="hero" id="top" data-screen-label="Hero">
+    <div class="hero-sticky">
+      <div class="noise" style="opacity:0.12;mix-blend-mode:soft-light"></div>
+
+      <div class="hero-nav">
+        <a href="#top" class="brand" aria-label="grubshelf home" style="display:flex;align-items:center;text-decoration:none">
+          <img src="assets/wordmark-mint.svg" alt="grubshelf" style="height:28px;width:auto" />
+        </a>
+        <nav class="nav-links">
+          <a class="nav-link" href="#vf-features">Features</a>
+          <a class="nav-link" href="#v5-faq">FAQ</a>
+          <a class="nav-cta" href="#vf-waitlist">Get updates</a>
+        </nav>
+      </div>
+
+      <div class="hero-headline">
+        <h1>
+          <span class="hl-1">The list on</span>
+          <span class="hl-2">the fridge follows you</span>
+          <span class="hl-3">to the store.</span>
+        </h1>
+        <p class="hero-sub">Know what's in your kitchen, what's about to turn, and what you actually need to buy, before you're stood in the aisle second-guessing. The spinach you forgot about? Rescued before it wilts.</p>
+        <div class="hero-ctas">
+          <a class="btn-primary" href="#vf-waitlist">Join the Waiting List <span style="font-size:16px">→</span></a>
+          <a class="btn-ghost" href="#vf-features">See how it works</a>
+        </div>
+      </div>
+
+      <div class="hero-stage"></div>
+
+      <!-- mobile-only: phone mockup stacked under the headline -->
+      <div class="hero-mobile"></div>
+
+      <div class="scroll-hint">
+        <span>Scroll to play</span>
+        <div class="bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- ===================== STORY ===================== -->
+    <section class="section story" data-screen-label="Story">
+      <div class="noise" style="opacity:0.06;mix-blend-mode:multiply"></div>
+      <div class="story-layout">
+        <div class="story-sticky">
+          <h2 class="h2" style="font-size:42px;letter-spacing:-0.03em;color:var(--bg-teal);margin-bottom:20px">Why this<br />keeps happening.</h2>
+          <p style="font-size:15px;line-height:1.65;color:var(--subtle);max-width:240px;margin:0">Three beats of a Tuesday. You&rsquo;ll recognize at least one of them.</p>
+        </div>
+        <div class="story-beats"></div>
+      </div>
+    </section>
+
+    <!-- ===================== PRODUCT INTRO ===================== -->
+    <section id="vf-features" class="section center" style="background:var(--bg-teal);color:var(--text-on-dark);padding:96px var(--pad-x) 64px" data-screen-label="Features intro">
+      <h2 class="h2" style="font-size:56px;color:var(--text-on-dark);max-width:720px;margin:0 auto">Three things, done<br />properly.</h2>
+      <p class="lead" style="color:var(--text-on-dark-muted);max-width:540px">Pantry, list, spending. Each one feeds the next, so nothing slips through the cracks, or the back of the fridge.</p>
+    </section>
+
+    <!-- feature blocks injected here -->
+    <div id="product-features"></div>
+
+    <!-- ===================== APP SCREENSHOTS ===================== -->
+    <section class="section app-shots" data-screen-label="App screenshots">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:52px">
+          <h2 class="h2" style="font-size:52px;color:var(--text-on-dark);max-width:680px;margin:0 auto">See it for real.</h2>
+          <p class="lead" style="color:var(--text-on-dark-muted);max-width:520px">Straight from the iPhone app, pantry, list, and spending, exactly as you&rsquo;ll use them.</p>
+        </div>
+        <div class="shots-row">
+          <figure class="shot">
+            <div class="shot-phone">
+              <img src="assets/shot-home.png" alt="GrubShelf home screen, your kitchen at a glance" class="shot-img" loading="lazy" />
+            </div>
+            <figcaption>Your kitchen at a glance</figcaption>
+          </figure>
+          <figure class="shot">
+            <div class="shot-phone">
+              <img src="assets/shot-pantry.png" alt="GrubShelf pantry screen, every item tracked, with low-stock flags" class="shot-img" loading="lazy" />
+            </div>
+            <figcaption>Every item, tracked and flagged</figcaption>
+          </figure>
+          <figure class="shot">
+            <div class="shot-phone">
+              <img src="assets/shot-expense.png" alt="GrubShelf expense screen, budget and spend in view" class="shot-img" loading="lazy" />
+            </div>
+            <figcaption>Budget and spend, in view</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SAVINGS ===================== -->
+    <section class="section savings" data-screen-label="Savings">
+      <div class="wrap">
+        <div class="center" style="margin-bottom:56px">
+          <h2 class="h2" style="font-size:56px;color:var(--text-on-dark);max-width:720px;margin:0 auto">The math we don&rsquo;t<br /><span style="color:var(--amber)">do in our heads.</span></h2>
+          <p class="lead" style="color:var(--text-on-dark-muted);max-width:540px">What GrubShelf is built to change. These are the targets we&rsquo;re designing for, we&rsquo;ll share real numbers once the app is in more kitchens.</p>
+        </div>
+        <div class="stat-grid"></div>
+      </div>
+    </section>
+
+    <!-- ===================== WHY WE'RE BUILDING THIS ===================== -->
+    <section class="section founder-note" data-screen-label="Why we're building this">
+      <div class="noise" style="opacity:0.06;mix-blend-mode:multiply"></div>
+      <div class="wrap" style="max-width:760px">
+        <div class="center" style="margin-bottom:28px">
+          <span class="eyebrow" style="color:var(--mint)">Why we&rsquo;re building grubshelf</span>
+        </div>
+        <blockquote class="founder-quote">
+          We kept buying the spinach we already had, then binning the bag we forgot. We&rsquo;d stand in the aisle guessing, and come home with three things we didn&rsquo;t need and not the one we did.
+          <br /><br />
+          Every app we tried wanted us to plan our whole lives around it. We just wanted the list on the fridge to follow us to the store, to know what we already had, what was about to turn, and what each shop actually cost.
+          <br /><br />
+          So we&rsquo;re building that. No meal-planning homework, no daily nagging. Just the quiet stuff that stops the waste.
+        </blockquote>
+        <div class="founder-sign">the grubshelf team</div>
+      </div>
+    </section>
+
+    <!-- ===================== PRICING (hidden, pre-launch awareness only) ===================== -->
+    <section id="pricing" class="section pricing" data-screen-label="Pricing" hidden style="display:none">
+      <div class="pricing-blob1"></div>
+      <div class="pricing-blob2"></div>
+      <div class="wrap" style="max-width:920px">
+        <div class="center" style="margin-bottom:48px">
+          <h2 class="h2" style="font-size:52px;letter-spacing:-0.03em;color:var(--bg-teal);max-width:680px;margin:0 auto">What it costs.</h2>
+          <p class="lead" style="color:var(--subtle);max-width:540px">Free to start at launch. Premium when your household needs the full shelf.</p>
+        </div>
+        <div class="pricing-cards"></div>
+      </div>
+    </section>
+
+    <!-- ===================== FAQ ===================== -->
+    <section id="v5-faq" class="section faq" data-screen-label="FAQ">
+      <div class="faq-wrap">
+        <div class="center" style="margin-bottom:40px">
+          <h2 class="h2" style="font-size:52px;letter-spacing:-0.03em;color:var(--bg-teal)">Things people ask</h2>
+        </div>
+        <div class="faq-list"></div>
+      </div>
+    </section>
+
+    <!-- ===================== NEWSLETTER ===================== -->
+    <section id="vf-waitlist" class="newsletter" data-screen-label="Newsletter">
+      <div class="newsletter-wrap">
+        <h2>First in line<br /><span class="accent">when we launch.</span></h2>
+        <p class="copy">Join the waiting list and we&rsquo;ll email you the moment the iOS app goes live, plus the odd money-saving trick along the way. No fluff, no daily nagging.</p>
+        <form id="newsletter-form">
+          <input type="email" required placeholder="you@example.com" />
+          <button type="submit">Join the list</button>
+        </form>
+        <p id="newsletter-msg" class="msg" style="display:block;min-height:1px"></p>
+        <p class="fine">First to know at launch. Unsubscribe in one click. Zero&nbsp;spam.</p>
+        <div class="newsletter-follow">
+          <span>Not ready for email? Follow along instead</span>
+          <div class="newsletter-follow-links">
+            <a href="https://www.instagram.com/grubshelf?igsh=MWlvY2cybXN2cThicA%3D%3D&utm_source=qr" target="_blank" rel="noopener">Instagram</a>
+            <a href="https://www.tiktok.com/@grubshelf" target="_blank" rel="noopener">TikTok</a>
+            <a href="https://x.com/grubshelf" target="_blank" rel="noopener">Twitter / X</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer" data-screen-label="Footer">
+    <div class="footer-grid">
+      <div>
+        <span class="footer-brand">grubshelf</span>
+        <p>A quieter way through the store.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Product</div>
+        <ul>
+          <li><a href="#vf-features">Features</a></li>
+          <li><a href="#v5-faq">FAQ</a></li>
+          <li><a href="#vf-waitlist">Join the Waiting List</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Follow</div>
+        <ul>
+          <li><a href="https://www.instagram.com/grubshelf?igsh=MWlvY2cybXN2cThicA%3D%3D&utm_source=qr" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.tiktok.com/@grubshelf" target="_blank" rel="noopener">TikTok</a></li>
+          <li><a href="https://x.com/grubshelf" target="_blank" rel="noopener">Twitter / X</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 grubshelf</div>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="hero.js"></script>
+  <script src="sections.js"></script>
+</body>
+</html>
