@@ -8,6 +8,7 @@ import {
   upstreamErrorToMessage,
 } from "../lib/buttondown-newsletter.js";
 
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function clientIp(req) {
@@ -64,18 +65,15 @@ export default async function handler(req, res) {
     });
   }
 
-  const welcomeToken = crypto.randomUUID();
-
   try {
     const subscribeRes = await fetch(`${BUTTONDOWN_API_BASE}/subscribers`, {
       method: "POST",
       headers: {
         Authorization: `Token ${apiKey}`,
         "Content-Type": "application/json",
+        "X-Buttondown-Collision-Behavior": "overwrite",
       },
-      body: JSON.stringify(
-        buildSubscriberPayload(email, welcomeToken, clientIp(req)),
-      ),
+      body: JSON.stringify(buildSubscriberPayload(email, clientIp(req))),
     });
 
     const data = await subscribeRes.json().catch(() => null);
@@ -89,7 +87,7 @@ export default async function handler(req, res) {
         try {
           const welcomeResult = await sendWelcomeEmail(
             apiKey,
-            welcomeToken,
+            email,
             loadWelcomeEmailHtml(),
           );
           if (!welcomeResult.ok) {
