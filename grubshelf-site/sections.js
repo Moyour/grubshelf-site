@@ -6,10 +6,11 @@
   /* ---------------- STORY ---------------- */
   function beatVisual(kind) {
     if (kind === "paper-blank") {
-      return `<div class="beat-visual" style="background:var(--paper);border-radius:4px;padding:24px;
-        box-shadow:0 12px 24px rgba(4,52,44,0.12),0 4px 8px rgba(4,52,44,0.06);transform:rotate(-2.5deg);
-        background-image:repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(4,52,44,0.08) 27px,rgba(4,52,44,0.08) 28px);position:relative;height:200px">
-        <div style="position:absolute;left:38px;top:14px;bottom:14px;width:1px;background:rgba(163,45,45,0.3)"></div>
+      return `<div class="beat-visual" style="background:var(--paper);border-radius:8px;padding:24px;
+        box-shadow:0 16px 32px rgba(4,52,44,0.12),0 4px 12px rgba(4,52,44,0.06),inset 0 1px 0 rgba(255,255,255,0.8);transform:rotate(-2.5deg);
+        background-image:repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(4,52,44,0.06) 27px,rgba(4,52,44,0.06) 28px);position:relative;height:200px;
+        border:1px solid rgba(4,52,44,0.06);transition:transform 0.4s cubic-bezier(0.22,1,0.36,1),box-shadow 0.4s">
+        <div style="position:absolute;left:38px;top:14px;bottom:14px;width:1px;background:rgba(163,45,45,0.25)"></div>
         <div style="font-family:var(--font-hand);font-size:22px;color:var(--ink);line-height:28px;padding-left:18px">eggs???</div>
       </div>`;
     }
@@ -24,7 +25,7 @@
       </div>`;
     }
     if (kind === "receipt") {
-      return `<div class="beat-visual" style="background:var(--paper);padding:20px 16px;height:220px;box-shadow:0 12px 24px rgba(4,52,44,0.1);
+      return `<div class="beat-visual" style="background:var(--paper);padding:20px 16px;height:220px;box-shadow:0 16px 32px rgba(4,52,44,0.12),0 4px 12px rgba(4,52,44,0.06);
         font-family:var(--font-mono);font-size:10px;color:var(--ink);line-height:1.6;position:relative;transform:rotate(1.5deg);
         clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px))">
         <div style="text-align:center;font-weight:600;margin-bottom:8px">BIG GROCER · 4:47PM</div>
@@ -181,8 +182,11 @@
     const liColor = dark ? "rgba(225,245,238,0.85)" : "var(--ink)";
     const tickBg = dark ? "rgba(29,158,117,0.2)" : "rgba(29,158,117,0.15)";
     const titleColor = dark ? "var(--text-on-dark)" : "var(--bg-teal)";
+    const badgeBg = dark ? "rgba(225,245,238,0.08)" : "rgba(4,52,44,0.05)";
+    const badgeColor = dark ? "var(--amber)" : "var(--amber-dark)";
     const textBlock = `
       <div class="feature-text reveal-x ${f.side === "left" ? "from-right" : "from-left"}" style="order:${f.side === "left" ? 2 : 1}">
+        <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:${badgeBg};font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:0.15em;color:${badgeColor};margin-bottom:16px">${f.n}</div>
         <h3 style="color:${titleColor}">${f.title}</h3>
         <p class="body" style="color:${bodyColor}">${f.body}</p>
         <ul>
@@ -196,14 +200,74 @@
   }).join("");
   document.getElementById("product-features").innerHTML = featuresHTML;
 
-  /* ---------------- SAVINGS ---------------- */
+  /* ---------------- TESTIMONIALS MARQUEE ---------------- */
+  function buildMarqueeCards(quotes) {
+    return quotes.map((q) => `
+      <div class="marquee-card" style="transform:rotate(${q.rotation}deg)">
+        <div class="tape"></div>
+        <div class="quote-text">&ldquo;${q.text}&rdquo;</div>
+        <div class="quote-foot">
+          <div class="avatar">${q.name.charAt(0)}</div>
+          <div>
+            <div class="quote-name">${q.name}</div>
+            <div class="quote-role">${q.role}</div>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
+  const marqueeRow1 = document.getElementById("marquee-row-1");
+  const marqueeRow2 = document.getElementById("marquee-row-2");
+  if (marqueeRow1 && QUOTES.length > 0) {
+    const row1Cards = buildMarqueeCards(QUOTES);
+    marqueeRow1.innerHTML = `<div class="marquee-track">${row1Cards}${row1Cards}</div>`;
+  }
+  if (marqueeRow2 && QUOTES.length > 0) {
+    // Reverse order for row 2
+    const row2Cards = buildMarqueeCards([...QUOTES].reverse());
+    marqueeRow2.innerHTML = `<div class="marquee-track">${row2Cards}${row2Cards}</div>`;
+  }
+
+  /* ---------------- SAVINGS (with animated counters) ---------------- */
   document.querySelector(".stat-grid").innerHTML = STATS.map((s, i) => `
     <div class="stat reveal" style="transition-delay:${i * 0.15}s">
-      <div class="value">${s.value}</div>
+      <div class="value" data-count-target="${s.value}">${s.value}</div>
       <div class="label">${s.label}</div>
       <div class="sub">${s.sub}</div>
     </div>
   `).join("");
+
+  /* Animated counters */
+  const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = el.getAttribute("data-count-target");
+      if (!target) return;
+      counterObs.unobserve(el);
+
+      // Parse number from value like "~$58", "33%", "8 min"
+      const numMatch = target.match(/(\d+)/);
+      if (!numMatch) return;
+      const endNum = parseInt(numMatch[1], 10);
+      const prefix = target.substring(0, target.indexOf(numMatch[0]));
+      const suffix = target.substring(target.indexOf(numMatch[0]) + numMatch[0].length);
+
+      let start = 0;
+      const duration = 1200;
+      const t0 = performance.now();
+      function tick(now) {
+        const p = Math.min((now - t0) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const current = Math.round(eased * endNum);
+        el.textContent = prefix + current + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  }, { threshold: 0.4 });
+
+  document.querySelectorAll(".stat .value[data-count-target]").forEach((el) => counterObs.observe(el));
 
   /* ---------------- TESTIMONIALS ---------------- */
   const quoteGrid = document.querySelector(".quote-grid");
@@ -284,6 +348,7 @@
       const input = form.querySelector("input");
       const btn = form.querySelector("button");
       const msg = document.getElementById("newsletter-msg");
+      const wrap = form.closest(".newsletter-wrap");
       const defaultLabel = btn.textContent;
       btn.textContent = "Joining...";
       btn.disabled = true;
@@ -298,26 +363,106 @@
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok) {
-          msg.textContent =
-            "You're on the list. We'll email you the moment we launch.";
-          msg.className = "msg ok";
-          input.value = "";
+          // Replace form area with success state
+          form.style.display = "none";
+          msg.style.display = "none";
+          const fine = wrap ? wrap.querySelector(".fine") : null;
+          if (fine) fine.style.display = "none";
+          const successEl = document.createElement("div");
+          successEl.className = "newsletter-success";
+          successEl.innerHTML = `
+            <div class="check-circle">
+              <svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>
+            </div>
+            <p>You're in.</p>
+            <p class="sub-text">First email drops soon. Check your inbox — and your spam, just in case.</p>
+          `;
+          form.parentNode.insertBefore(successEl, form);
         } else {
           msg.textContent =
             data.error || "Could not connect. Please try again.";
           msg.className = "msg err";
+          btn.textContent = defaultLabel;
+          btn.disabled = false;
         }
       } catch {
         msg.textContent = "Could not connect. Please try again.";
         msg.className = "msg err";
-      } finally {
         btn.textContent = defaultLabel;
         btn.disabled = false;
       }
     });
   }
 
-  /* ---------------- SCROLL REVEALS ---------------- */
+  /* ---------------- MID-CTA & FOOTER NEWSLETTER FORMS ---------------- */
+  function attachNewsletterForm(formId, msgId) {
+    const frm = document.getElementById(formId);
+    if (!frm) return;
+    frm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = frm.querySelector("input");
+      const btn = frm.querySelector("button");
+      const msgEl = document.getElementById(msgId);
+      const defaultLabel = btn.textContent;
+      btn.textContent = "Joining...";
+      btn.disabled = true;
+      if (msgEl) msgEl.textContent = "";
+      try {
+        const res = await fetch("/api/newsletter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: input.value.trim().toLowerCase() }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          if (msgEl) { msgEl.textContent = "You're on the list!"; msgEl.className = "msg ok"; }
+          input.value = "";
+        } else {
+          if (msgEl) { msgEl.textContent = data.error || "Could not connect. Please try again."; msgEl.className = "msg err"; }
+        }
+      } catch {
+        if (msgEl) { msgEl.textContent = "Could not connect. Please try again."; msgEl.className = "msg err"; }
+      } finally {
+        btn.textContent = defaultLabel;
+        btn.disabled = false;
+      }
+    });
+  }
+  attachNewsletterForm("mid-cta-form", "mid-cta-msg");
+  attachNewsletterForm("footer-newsletter-form", "footer-newsletter-msg");
+
+  /* ---------------- STICKY MOBILE CTA BAR ---------------- */
+  const mobileCta = document.getElementById("mobile-cta-bar");
+  const closeMobileCta = document.getElementById("close-mobile-cta");
+  if (mobileCta) {
+    let dismissed = false;
+    let dismissedAt = 0;
+    const checkMobileCta = () => {
+      if (dismissed && (window.scrollY - dismissedAt) < window.innerHeight * 2) return;
+      if (dismissed && (window.scrollY - dismissedAt) >= window.innerHeight * 2) dismissed = false;
+      const pastHero = window.scrollY > window.innerHeight * 1.2;
+      const nearBottom = window.scrollY + window.innerHeight > document.body.scrollHeight - 300;
+      mobileCta.classList.toggle("visible", pastHero && !nearBottom && !dismissed);
+    };
+    window.addEventListener("scroll", checkMobileCta, { passive: true });
+    if (closeMobileCta) {
+      closeMobileCta.addEventListener("click", () => {
+        dismissed = true;
+        dismissedAt = window.scrollY;
+        mobileCta.classList.remove("visible");
+      });
+    }
+  }
+
+  /* ---------------- SCROLL REVEALS (with stagger) ---------------- */
+  // Assign stagger delays to sibling .reveal elements
+  document.querySelectorAll(".story-beats, .stat-grid, .faq-list").forEach((container) => {
+    const reveals = container.querySelectorAll(".reveal");
+    reveals.forEach((el, i) => {
+      el.style.transitionDelay = `${i * 0.1}s`;
+    });
+  });
+
   const obs = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -332,7 +477,7 @@
         obs.unobserve(el);
       }
     });
-  }, { threshold: 0.2 });
+  }, { threshold: 0.15 });
 
   document.querySelectorAll(".reveal, .reveal-x, .reveal-v, .quote-card").forEach((el) => obs.observe(el));
 

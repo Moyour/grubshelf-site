@@ -5,6 +5,7 @@
   const lerp = (a, b, t) => a + (b - a) * clamp(t);
   const range = (p, a, b) => clamp((p - a) / (b - a));
   const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  const easeOutBack = (t) => { const c1 = 1.70158; const c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
 
   const TONES = {
     good: { bg: "rgba(29,158,117,0.18)", fg: "#1d9e75" },
@@ -160,20 +161,22 @@
       el.style.transform = `translate(${x}px, ${y}px) translateZ(${z}px) rotate(${(i - 2) * 6 + t * 30}deg) scale(${0.8 + Math.sin(t * Math.PI) * 0.4})`;
     });
 
-    // phone
+    // phone — with subtle bounce overshoot
+    const phoneBounce = easeOutBack(range(progress, 0.65, 0.85));
     phone.style.transform = `translate(50%, -50%)
-      translateY(${lerp(120, 0, phoneP)}px)
-      scale(${lerp(0.85, 1, phoneP)})
+      translateY(${lerp(120, 0, phoneBounce)}px)
+      scale(${lerp(0.85, 1, phoneBounce)})
       rotateY(${lerp(-15, 0, phoneP)}deg)`;
     phone.style.opacity = phoneP;
     phone.style.filter = `drop-shadow(0 ${40 + phoneP * 30}px ${60 + phoneP * 40}px rgba(0,0,0,${0.4 + phoneP * 0.3}))`;
-    phoneGlow.style.boxShadow = `0 0 80px ${20 + phoneP * 40}px rgba(232,160,32,${phoneP * 0.15})`;
+    phoneGlow.style.boxShadow = `0 0 ${60 + phoneP * 60}px ${20 + phoneP * 50}px rgba(232,160,32,${phoneP * 0.2})`;
 
     phoneItems.forEach((el, i) => {
-      const landP = easeOut(range(progress, 0.72 + i * 0.02, 0.84 + i * 0.02));
+      const landP = easeOut(range(progress, 0.72 + i * 0.025, 0.86 + i * 0.025));
       el.style.opacity = landP;
-      el.style.transform = `translateY(${(1 - landP) * 12}px) scale(${0.94 + landP * 0.06})`;
-      el.style.boxShadow = landP > 0.5 ? "0 2px 4px rgba(4,52,44,0.04)" : "none";
+      el.style.transform = `translateY(${(1 - landP) * 16}px) scale(${0.94 + landP * 0.06})`;
+      el.style.filter = `blur(${(1 - landP) * 4}px)`;
+      el.style.boxShadow = landP > 0.5 ? "0 2px 6px rgba(4,52,44,0.06)" : "none";
     });
     tabbar.style.opacity = easeOut(range(progress, 0.84, 0.92));
 

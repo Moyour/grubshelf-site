@@ -1,7 +1,7 @@
 {
   "name": "grubshelf",
   "short_name": "grubshelf",
-  "description": "Know what's in your kitchen, what's about to turn, and what to actually buy, before you're stood in the aisle guessing.",
+  "description": "Know what's in your pantry, what's about to turn, and what to actually buy, before you're stood in the aisle guessing.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#04342c",
