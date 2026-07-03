@@ -658,6 +658,102 @@
     return;
   }
 
+  /* ============================================================
+     SOUND — opt-in only, muted by default. Short, soft cues synthesized
+     with the Web Audio API (no external audio files) tied to the story's
+     key beats: lift-off, cart landing, phone landing, notification cards.
+     Browsers block audio until a real user gesture anyway, so "default
+     muted + explicit toggle" isn't just polite, it's the only thing that
+     reliably works on first visit.
+     ============================================================ */
+  const SOUND_KEY = 'grubshelf_hero_sound';
+  let audioCtx = null;
+  let muted = localStorage.getItem(SOUND_KEY) !== 'on';
+
+  function ensureAudioCtx() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function tone(freq, dur, opts) {
+    opts = opts || {};
+    if (muted) return;
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    const t0 = ctx.currentTime + (opts.delay || 0);
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = opts.type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    if (opts.freqEnd) osc.frequency.exponentialRampToValueAtTime(opts.freqEnd, t0 + dur);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(opts.vol || 0.05, t0 + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  const sfx = {
+    whoosh: () => tone(340, 0.16, { type: 'sine', vol: 0.035, freqEnd: 620 }),
+    clink:  () => tone(880, 0.09, { type: 'triangle', vol: 0.045, freqEnd: 640 }),
+    pop:    () => tone(660, 0.08, { type: 'sine', vol: 0.05, freqEnd: 900 }),
+    ding:   () => {
+      tone(988, 0.22, { type: 'sine', vol: 0.045 });
+      tone(1319, 0.22, { type: 'sine', vol: 0.03, delay: 0.05 });
+    },
+  };
+
+  const ICON_MUTED =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+  const ICON_UNMUTED =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+
+  // Lives outside the hero's aria-hidden="true" scope (appended to <body>,
+  // not into the decorative layers) since it's a real interactive control.
+  const soundBtn = document.createElement('button');
+  soundBtn.type = 'button';
+  soundBtn.className = 'dp-sound-toggle';
+  soundBtn.innerHTML = muted ? ICON_MUTED : ICON_UNMUTED;
+  soundBtn.setAttribute('aria-label', muted ? 'Turn on hero sound effects' : 'Turn off hero sound effects');
+  soundBtn.addEventListener('click', () => {
+    muted = !muted;
+    localStorage.setItem(SOUND_KEY, muted ? 'off' : 'on');
+    soundBtn.innerHTML = muted ? ICON_MUTED : ICON_UNMUTED;
+    soundBtn.setAttribute('aria-label', muted ? 'Turn on hero sound effects' : 'Turn off hero sound effects');
+    if (!muted) { ensureAudioCtx(); sfx.pop(); } // confirmation blip so unmuting feels responsive
+  });
+  document.body.appendChild(soundBtn);
+
+  const soundStyle = document.createElement('style');
+  soundStyle.textContent = `
+    .dp-sound-toggle {
+      position:fixed; right:20px; bottom:20px; z-index:950;
+      width:40px; height:40px; border-radius:50%;
+      background:rgba(4,25,15,.7); border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+      color:rgba(225,245,238,.85);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; opacity:0; pointer-events:none;
+      transition:opacity .4s ease, background .2s ease, transform .2s ease;
+    }
+    .dp-sound-toggle.is-visible { opacity:1; pointer-events:auto; }
+    .dp-sound-toggle:hover { background:rgba(4,25,15,.9); transform:scale(1.06); }
+  `;
+  document.head.appendChild(soundStyle);
+
+  // edge-triggered playback state — one flag per item/card per beat, so each
+  // cue fires once per crossing and resets if you scroll back past it.
+  const liftPlayed = new Array(PANTRY.length).fill(false);
+  const cartLandPlayed = new Array(PANTRY.length).fill(false);
+  const phoneLandPlayed = new Array(PANTRY.length).fill(false);
+  const notifyPlayed = new Array(cardEls.length).fill(false);
+
   // Emoji box sizes at each stage of the journey: sitting on the shelf,
   // floating in open air, parked inside the cart, and (wider) as a phone row.
   const AISLE_BOX = 64;
@@ -779,6 +875,9 @@
     const scrolled = Math.max(0, window.scrollY);
     const raw = scrollable > 0 ? Math.min(scrolled / scrollable, 1) : 0;
 
+    /* sound toggle only makes sense while the story with sound cues is on screen */
+    soundBtn.classList.toggle('is-visible', raw < 0.995);
+
     /* ambient background emojis fade back once items start converging */
     floatLayer.style.opacity = String(1 - clamp01((raw - 0.2) / 0.4) * 0.85);
 
@@ -813,6 +912,19 @@
       const exitStart    = T_EXIT_START + i * EXIT_STAGGER;
       const exitEnd       = exitStart + T_EXIT_DUR;
       const enterStart   = T_ENTER_START + i * ENTER_STAGGER;
+
+      // sound: lift-off the shelf, and settling into the cart — edge-triggered,
+      // resets if you scroll back up past the threshold so it can replay
+      if (raw > aisleExitStart) {
+        if (!liftPlayed[i]) { liftPlayed[i] = true; sfx.whoosh(); }
+      } else {
+        liftPlayed[i] = false;
+      }
+      if (raw > gatherEnd) {
+        if (!cartLandPlayed[i]) { cartLandPlayed[i] = true; sfx.clink(); }
+      } else {
+        cartLandPlayed[i] = false;
+      }
 
       let left, top, width, height, emojiSize;
       let tc = 0; // enter-phone progress, used below for the row hand-off + text reveal
@@ -898,6 +1010,11 @@
 
       /* handoff: once landed, swap to the real (interactive-ready) row */
       const landed = tc > 0.94;
+      if (landed) {
+        if (!phoneLandPlayed[i]) { phoneLandPlayed[i] = true; sfx.pop(); }
+      } else {
+        phoneLandPlayed[i] = false;
+      }
       rowEls[i].classList.toggle('is-in', landed);
       if (landed) el.style.opacity = '0';
     });
@@ -909,6 +1026,12 @@
       const start = T_NOTIFY_START + i * NOTIFY_STAGGER;
       const tRaw = clamp01((raw - start) / NOTIFY_DUR);
       const landed = tRaw >= 1;
+
+      if (landed) {
+        if (!notifyPlayed[i]) { notifyPlayed[i] = true; sfx.ding(); }
+      } else {
+        notifyPlayed[i] = false;
+      }
 
       if (landed) {
         el.classList.add('is-in');
