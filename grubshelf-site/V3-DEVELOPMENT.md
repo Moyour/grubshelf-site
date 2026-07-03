@@ -1,6 +1,6 @@
 # v3 landing page — development notes
 
-`v3.html` (+ `hero-v3.js`) is a redesigned variant of the landing page, built alongside the existing `index.html`. It is **not live** — it only serves at `/v3.html` right now. `index.html` is still what visitors get at `/`.
+`v3.html` (+ `hero-v3.js`) is a redesigned version of the landing page, originally built alongside the previous homepage. **It is now the homepage.** The file that used to be `index.html` was renamed to `v2.html` (kept for reference, still fully intact — nothing was deleted), and the v3 file was renamed to `index.html`, so `/` now serves v3 with no config/rewrite trickery needed. `/v2.html` still serves the previous version if you want to compare or roll back.
 
 ## What changed from the original hero
 
@@ -31,46 +31,40 @@ The hero is `600vh` tall (sticky-pinned), driven entirely by scroll position —
 
 ```
 grubshelf-site/
-├── v3.html        # the v3 page — self-contained (all CSS inline in <style>)
-└── hero-v3.js      # builds + animates the entire hero scene
+├── index.html      # the homepage — this is v3's content now (self-contained, CSS inline)
+├── hero-v3.js       # builds + animates the entire hero scene
+└── v2.html          # the previous homepage, kept intact for reference/rollback
 ```
 
-`v3.html` does **not** use `data.js` or `styles.css` — it's intentionally self-contained.
+`index.html` does **not** use `data.js` or `styles.css` — it's intentionally self-contained. (`v2.html` still uses both, plus `hero.js`, `sections.js`, etc. — untouched.)
 
-## Current status / open decisions
+## Current status
 
-- `v3.html` is only reachable at `/v3.html`. It is **not** wired into `vercel.json`'s rewrite rule or `sitemap.xml` as the homepage — that's a deliberate choice to leave open until you decide to promote it.
-- Not committed to git yet (see below).
+- Live at `https://grubshelf.app/` as of this deploy.
+- `v2.html` is still deployed too, at `https://grubshelf.app/v2.html`, in case you want to compare or roll back.
+- `sitemap.xml` still only lists `/`, `/privacy`, `/terms` — no change needed there since the URL didn't change, only which file backs it.
 
-## Deploying, when you're ready
+## Rolling back, if you ever need to
 
-**1. Review what you're about to commit.** The repo has other in-progress changes unrelated to v3 (from other work), so stage deliberately rather than `git add -A`:
-
-```bash
-git status                 # see everything that's changed
-git add grubshelf-site/v3.html grubshelf-site/hero-v3.js grubshelf-site/V3-DEVELOPMENT.md
-git status                 # confirm only those are staged
-```
-
-**2. Commit:**
+Since nothing was deleted, reverting is just the reverse rename:
 
 ```bash
-git commit -m "Add v3 landing page: scroll-driven hero story, honest pre-launch copy"
-```
-
-**3. Push:**
-
-```bash
+git mv grubshelf-site/index.html grubshelf-site/v3.html
+git mv grubshelf-site/v2.html grubshelf-site/index.html
+git commit -m "Roll back homepage to previous version"
 git push origin main
+cd .. && vercel --prod
 ```
 
-**4. Deploy to Vercel.** Per the main [README](README.md#deploy-vercel--site--newsletter-api), deploy from the **repo root** (parent of `grubshelf-site/`):
+## Deploying changes going forward
+
+Same as any other change to this repo — stage deliberately (the repo has other in-progress work unrelated to this page, so avoid `git add -A`), commit, push, then deploy from the repo root:
 
 ```bash
-cd ..
-vercel --prod
+git add grubshelf-site/index.html grubshelf-site/hero-v3.js grubshelf-site/v2.html grubshelf-site/V3-DEVELOPMENT.md vercel.json
+git commit -m "your message"
+git push origin main
+cd .. && vercel --prod
 ```
 
-This publishes `v3.html` at `https://grubshelf.app/v3.html` (or your custom domain) — it still won't be the homepage until `vercel.json` and `sitemap.xml` are updated to point `/` at it, which is a separate, deliberate step.
-
-Just ask me when you're ready for any of this and I'll walk through it with you (or do it directly, with your go-ahead — pushing and deploying are the kind of actions I'll always confirm with you first).
+I'll always confirm with you before pushing or deploying — just say the word.
