@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrubShelf – Pantry Tracker & Expiry Date App for iPhone</title>
+  <meta name="description" content="Never waste food again. GrubShelf tracks your pantry, expiry dates, and shopping list — scan a receipt and it's done. Free for iPhone." />
+  <meta name="theme-color" content="#04342c" />
+  <link rel="canonical" href="https://grubshelf.app/" />
+
+  <!-- Icons -->
+  <link rel="icon" href="assets/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="grubshelf" />
+  <meta property="og:title" content="GrubShelf – Pantry Tracker & Expiry Date App for iPhone" />
+  <meta property="og:description" content="Never waste food again. GrubShelf tracks your pantry, expiry dates, and shopping list — scan a receipt and it's done. Free for iPhone." />
+  <meta property="og:url" content="https://grubshelf.app/" />
+  <meta property="og:image" content="https://grubshelf.app/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@grubshelf" />
+  <meta name="twitter:title" content="GrubShelf – Pantry Tracker & Expiry Date App for iPhone" />
+  <meta name="twitter:description" content="Never waste food again. GrubShelf tracks your pantry, expiry dates, and shopping list — scan a receipt and it's done. Free for iPhone." />
+  <meta name="twitter:image" content="https://grubshelf.app/assets/og.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       BASE / RESET
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    :root {
+      --font-outfit: 'Outfit', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+
+      /* ── Brand palette (Brand Guide v2) ── */
+      --teal-deep:   #04342c;   /* primary · grounds the brand */
+      --teal-deeper: #021f1a;   /* darkest bg */
+      --teal-mid:    #0f6e56;   /* mid surface / card bg */
+      --green:       #1d9e75;   /* success / status only */
+      --mint:        #e1f5ee;   /* text on dark */
+      --amber:       #e8a020;   /* action · primary CTA only */
+      --amber-deep:  #ba7517;   /* warning text / hover */
+      --amber-ink:   #412402;   /* text on amber buttons */
+      --danger:      #a32d2d;   /* errors only */
+
+      /* ── Semantic aliases used in layout ── */
+      --bg:          var(--teal-deep);
+      --bg-mid:      var(--teal-deeper);
+      --bg-card:     rgba(4,52,44,0.72);
+      --teal:        var(--green);  /* "matched/done/positive" accent used across mini-UI mockups */
+      --red:         #dc4545;       /* "expiring/bad" accent, matches the red used throughout the phone mockups */
+
+      --text:        var(--mint);
+      --text-dim:    rgba(225,245,238,0.6);
+      --text-faint:  rgba(225,245,238,0.28);
+      --border:      rgba(225,245,238,0.08);
+      --border-hi:   rgba(225,245,238,0.15);
+
+      --pad-x: clamp(20px, 5vw, 80px);
+      --section-pad: clamp(80px, 10vw, 140px);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-outfit);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: clip; /* not "hidden" — that establishes a scroll container and breaks position:sticky in .hero */
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================================
+       SCROLL PROGRESS
+    ============================================================ */
+    #scroll-progress {
+      position: fixed; top: 0; left: 0; height: 2px;
+      background: linear-gradient(90deg, var(--teal), var(--amber));
+      width: 0%; z-index: 9999; transition: width 0.1s linear;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       NAV
+    ============================================================ */
+    .v2-nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 900;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px var(--pad-x);
+      opacity: 0; pointer-events: none;
+      transform: translateY(-12px);
+      transition: opacity 0.4s ease, transform 0.4s ease, background 0.4s ease, border-color 0.4s ease;
+    }
+    .v2-nav.visible {
+      opacity: 1; pointer-events: auto;
+      transform: none;
+    }
+    .v2-nav.scrolled {
+      background: rgba(4,25,15,0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .v2-nav-brand {
+      font-size: 22px; font-weight: 800; letter-spacing: -0.04em;
+      color: var(--mint); text-decoration: none;
+    }
+    .v2-nav-links {
+      display: flex; align-items: center; gap: 28px;
+      list-style: none;
+    }
+    .v2-nav-links a {
+      color: var(--text-dim); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .v2-nav-links a:hover { color: var(--text); }
+    .v2-nav-cta {
+      background: var(--amber); color: var(--amber-ink) !important;
+      padding: 9px 20px; border-radius: 100px;
+      font-weight: 700 !important; font-size: 13px !important;
+      transition: background 0.2s, transform 0.2s !important;
+    }
+    .v2-nav-cta:hover { background: var(--amber-deep) !important; transform: translateY(-1px); }
+    @media (max-width: 600px) {
+      .v2-nav-links { gap: 16px; }
+      .v2-nav-links li:not(:last-child) { display: none; }
+    }
+
+    /* ============================================================
+       HERO (parallax + scroll morph handled by hero-v3.js)
+    ============================================================ */
+    .hero { height: 600vh !important; background: var(--bg) !important; }
+    .hero-sticky {
+      position: sticky !important; top: 0 !important;
+      height: 100vh !important; min-height: 600px !important;
+      overflow: hidden !important; background: var(--bg) !important;
+    }
+
+    /* ── hero→section fade: gradient veil at bottom of sticky panel ── */
+    .hero-sticky::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 280px;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(4,52,44,0.55) 45%,
+        rgba(4,52,44,0.92) 75%,
+        #04342c 100%
+      );
+      z-index: 500;
+      pointer-events: none;
+    }
+
+    .noise {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.03; mix-blend-mode: soft-light;
+    }
+
+    /* ============================================================
+       SECTION BASE
+    ============================================================ */
+    .v2-section {
+      position: relative;
+      padding: var(--section-pad) var(--pad-x);
+      background: var(--bg);
+      overflow: hidden;
+    }
+    .v2-section + .v2-section::before {
+      content: '';
+      position: absolute; top: 0; left: var(--pad-x); right: var(--pad-x);
+      height: 1px; background: var(--border);
+    }
+
+    /* Section noise grain */
+    .v2-section::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.018; mix-blend-mode: soft-light; z-index: 0;
+    }
+    .v2-section > * { position: relative; z-index: 1; }
+
+    /* Aurora blob shared */
+    .aurora-blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(120px); pointer-events: none;
+    }
+
+    .v2-wrap { max-width: 1100px; margin: 0 auto; }
+    .v2-center { text-align: center; }
+
+    .eyebrow {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--amber-deep);
+      margin-bottom: 16px;
+    }
+
+    .v2-h2 {
+      font-size: clamp(38px, 5vw, 72px);
+      font-weight: 800; letter-spacing: -0.04em;
+      line-height: 0.96; color: var(--text);
+      margin-bottom: 20px;
+    }
+    .v2-lead {
+      font-size: clamp(15px, 1.6vw, 18px);
+      line-height: 1.65; color: var(--text-dim);
+      max-width: 560px;
+    }
+    .v2-center .v2-lead { margin: 0 auto; }
+
+    .accent-teal  { color: var(--mint); }
+    .accent-amber { color: var(--amber); }
+
+    /* ============================================================
+       SCROLL REVEAL
+    ============================================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.7s cubic-bezier(0.22,1,0.36,1);
+    }
+    .reveal.in-view {
+      opacity: 1; transform: none;
+    }
+
+    /* ============================================================
+       PROBLEM SECTION
+    ============================================================ */
+    .problem-section {
+      background: var(--bg);
+    }
+    .problem-blobs {
+      position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+    }
+    .problem-blobs .pb1 {
+      width: 700px; height: 500px; top: -10%; left: -20%;
+      background: radial-gradient(circle, rgba(15,110,86,0.25) 0%, transparent 70%);
+    }
+    .problem-blobs .pb2 {
+      width: 500px; height: 600px; top: 20%; right: -15%;
+      background: radial-gradient(circle, rgba(232,160,32,0.1) 0%, transparent 70%);
+    }
+
+    .problem-top {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 60px 80px; align-items: start;
+      margin-bottom: 80px;
+    }
+    @media (max-width: 720px) {
+      .problem-top { grid-template-columns: 1fr; gap: 40px; }
+    }
+
+    .problem-stat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .problem-stat-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: rgba(4,52,44,0.5);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px 24px;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .stat-card:hover {
+      border-color: rgba(232,160,32,0.3);
+      transform: translateY(-4px);
+    }
+    .stat-num {
+      font-size: clamp(40px, 5vw, 64px);
+      font-weight: 900; letter-spacing: -0.05em;
+      line-height: 1; margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--mint), rgba(225,245,238,0.5) 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-num.amber {
+      background: linear-gradient(135deg, var(--amber), #fff 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-num.red {
+      background: linear-gradient(135deg, var(--danger), #f09595 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label {
+      font-size: 13px; line-height: 1.5;
+      color: var(--text-dim); font-weight: 500;
+    }
+
+    /* ============================================================
+       FEATURES BENTO
+    ============================================================ */
+    .features-section { background: var(--teal-deeper); }
+    .features-blob {
+      position: absolute; width: 800px; height: 600px;
+      top: 30%; left: 50%; transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(232,160,32,0.07) 0%, transparent 70%);
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: auto;
+      gap: 16px;
+      margin-top: 60px;
+    }
+
+    .bento-card {
+      background: rgba(4,52,44,0.55);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 28px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .bento-card:hover {
+      border-color: rgba(232,160,32,0.22);
+      transform: translateY(-3px);
+    }
+    .bento-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 0%, rgba(232,160,32,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* grid placement — the 3 features the hero already told a story about */
+    .bc-1 { grid-column: 1 / 8; grid-row: 1; }
+    .bc-2 { grid-column: 8 / 13; grid-row: 1; }
+    .bc-3 { grid-column: 1 / 13; grid-row: 2; }
+
+    @media (max-width: 900px) {
+      .bento-grid { grid-template-columns: 1fr 1fr; }
+      .bc-1, .bc-2, .bc-3 { grid-column: auto; grid-row: auto; }
+      .bc-1, .bc-3 { grid-column: 1 / -1; }
+    }
+    @media (max-width: 560px) {
+      .bento-grid { grid-template-columns: 1fr; }
+      .bc-1, .bc-3 { grid-column: 1; }
+    }
+
+    /* secondary features — demoted so the page keeps one tight promise
+       (pantry, alerts, list) instead of five competing pitches */
+    .bento-secondary {
+      margin-top: 16px;
+      padding: 20px 24px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(4,52,44,0.28);
+    }
+    .bento-secondary-label {
+      display: block;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-faint); margin-bottom: 14px;
+    }
+    .bento-secondary-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .bento-mini { display: flex; align-items: center; gap: 14px; }
+    .bento-mini-icon {
+      width: 36px; height: 36px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .bento-mini-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .bento-mini-desc { font-size: 13px; line-height: 1.5; color: var(--text-dim); }
+    @media (max-width: 640px) {
+      .bento-secondary-grid { grid-template-columns: 1fr; }
+    }
+
+    .bento-icon {
+      width: 44px; height: 44px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 20px;
+    }
+    .bi-teal  { background: rgba(225,245,238,0.1); }
+    .bi-amber { background: rgba(232,160,32,0.18); }
+    .bi-red   { background: rgba(163,45,45,0.2); }
+    .bi-white { background: rgba(225,245,238,0.06); }
+
+    .bento-title {
+      font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
+      margin-bottom: 10px; color: var(--text);
+    }
+    .bento-desc {
+      font-size: 14px; line-height: 1.6;
+      color: var(--text-dim);
+    }
+
+    /* big card mini-UI */
+    .bento-ui {
+      margin-top: 24px;
+      background: rgba(4,15,10,0.7);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 12px;
+    }
+    .bui-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .bui-row:last-child { border-bottom: none; }
+    .bui-left { display: flex; align-items: center; gap: 10px; }
+    .bui-e { font-size: 18px; }
+    .bui-name { font-weight: 600; color: var(--text); }
+    .bui-bar-wrap { width: 64px; }
+    .bui-bar-track { height: 3px; background: rgba(255,255,255,0.07); border-radius: 2px; }
+    .bui-bar { height: 100%; border-radius: 2px; }
+    .bb-bad  { background: linear-gradient(90deg, #dc4545, rgba(220,69,69,0.3)); width: 6%; }
+    .bb-warn { background: linear-gradient(90deg, #e8a020, rgba(232,160,32,0.3)); width: 22%; }
+    .bb-good { background: linear-gradient(90deg, #1d9e75, rgba(29,158,117,0.3)); width: 75%; }
+    .bui-tag { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.06em; }
+    .bt-bad  { color: rgba(220,80,80,0.9); }
+    .bt-warn { color: rgba(232,160,32,0.9); }
+    .bt-good { color: rgba(29,158,117,0.85); }
+
+    /* spend mini */
+    .spend-mini {
+      margin-top: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .spend-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .spend-label { font-size: 12px; color: var(--text-dim); flex: 0 0 80px; }
+    .spend-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+    .spend-fill { height: 100%; border-radius: 4px; }
+    .sf-1 { background: var(--teal); width: 68%; }
+    .sf-2 { background: var(--amber); width: 45%; }
+    .sf-3 { background: rgba(29,158,117,0.5); width: 30%; }
+    .spend-val { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-dim); flex: 0 0 40px; text-align: right; }
+
+    /* list mini */
+    .list-mini { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .li-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+      font-size: 12px; color: var(--text);
+    }
+    .li-row.got { color: var(--text-faint); text-decoration: line-through; }
+    .li-check {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .li-check.done { background: var(--teal); border-color: var(--teal); }
+    .li-check.done::after { content:'✓'; font-size: 9px; color: #fff; }
+    .li-badge {
+      margin-left: auto;
+      font-family: var(--font-mono); font-size: 9px;
+      color: var(--teal); background: rgba(29,158,117,0.12);
+      padding: 2px 6px; border-radius: 6px;
+    }
+
+    /* notification mini */
+    .notif-mini { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .notif-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 4px;
+    }
+    .nd-red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .nd-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .notif-text { font-size: 12px; line-height: 1.4; color: var(--text-dim); }
+    .notif-text strong { color: var(--text); font-weight: 600; }
+
+    /* ============================================================
+       HOW IT WORKS
+    ============================================================ */
+    .hiw-section { background: var(--teal-deep); }
+    .hiw-blob {
+      position: absolute; width: 600px; height: 600px;
+      top: 50%; right: -10%; transform: translateY(-50%);
+      background: radial-gradient(circle, rgba(15,110,86,0.3) 0%, transparent 70%);
+    }
+
+    .hiw-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: start;
+      margin-top: 60px;
+    }
+    @media (max-width: 760px) {
+      .hiw-layout { grid-template-columns: 1fr; gap: 48px; }
+    }
+
+    .hiw-steps { display: flex; flex-direction: column; gap: 0; }
+
+    .hiw-step {
+      display: flex; gap: 20px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+    .hiw-step:last-child { border-bottom: none; }
+    .hiw-step.active { opacity: 1; }
+    .hiw-step:not(.active) { opacity: 0.4; }
+
+    .hiw-step-num {
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; color: var(--amber);
+      flex-shrink: 0; width: 24px; padding-top: 3px;
+    }
+    .hiw-step-body {}
+    .hiw-step-title {
+      font-size: 18px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .hiw-step-desc { font-size: 14px; line-height: 1.65; color: var(--text-dim); }
+
+    /* phone mockup for HIW */
+    .hiw-phone-wrap {
+      position: sticky; top: 120px;
+      display: flex; justify-content: center;
+    }
+    .hiw-phone {
+      width: min(240px, 38vw); height: min(490px, 65vw);
+      background: var(--teal-deeper);
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 44px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 8px rgba(4,15,10,0.85),
+        0 0 0 10px rgba(255,255,255,0.04),
+        0 40px 100px rgba(0,0,0,0.6),
+        0 0 80px rgba(29,158,117,0.12);
+      position: relative;
+      transition: box-shadow 0.4s ease;
+    }
+    .hiw-notch {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 76px; height: 26px; background: #08150e;
+      border-radius: 0 0 18px 18px; z-index: 10;
+      border-bottom: 1.5px solid rgba(255,255,255,0.06);
+    }
+    .hiw-screen {
+      padding: 40px 16px 16px;
+      height: 100%; display: flex; flex-direction: column;
+    }
+    .hiw-screen-panel {
+      display: none; flex: 1; flex-direction: column; gap: 10px;
+    }
+    .hiw-screen-panel.active { display: flex; animation: panelIn 0.4s ease; }
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* panel A — scan receipt */
+    .panel-receipt {
+      flex: 1; border: 1.5px dashed rgba(29,158,117,0.3);
+      border-radius: 14px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      color: var(--teal); font-size: 11px; text-align: center;
+      background: rgba(29,158,117,0.04);
+    }
+    .panel-receipt-icon { font-size: 32px; }
+    .panel-receipt-label { font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.06em; font-size: 10px; }
+    .panel-receipt-items {
+      display: flex; flex-direction: column; gap: 4px; width: 100%;
+      margin-top: 8px;
+    }
+    .pri { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+    /* panel B — expiry alerts */
+    .panel-alert-list { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .pal-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .pal-left { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+    .pal-e { font-size: 18px; }
+    .pal-name { color: var(--text); font-weight: 600; }
+    .pal-badge { font-family: var(--font-mono); font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 8px; letter-spacing: 0.06em; }
+    .pb-bad  { background: rgba(220,69,69,0.15); color: rgba(220,80,80,0.9); }
+    .pb-warn { background: rgba(232,160,32,0.15); color: rgba(232,160,32,0.9); }
+    .pb-good { background: rgba(29,158,117,0.15); color: rgba(29,158,117,0.85); }
+
+    /* panel C — shop list */
+    .panel-shop-list { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .psl-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      font-size: 12px;
+    }
+    .psl-item.got { opacity: 0.35; }
+    .psl-cb {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      flex-shrink: 0;
+    }
+    .psl-cb.done { background: var(--teal); border-color: var(--teal); }
+    .psl-name { color: var(--text); font-weight: 500; }
+    .psl-have { margin-left: auto; font-family: var(--font-mono); font-size: 9px; color: var(--teal); }
+
+    /* ============================================================
+       WHY WE'RE BUILDING THIS (honest, pre-launch — no fake reviews)
+    ============================================================ */
+    .note-section { background: var(--teal-deeper); }
+    .note-blob {
+      position: absolute; width: 600px; height: 400px;
+      top: 0; left: 50%; transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(232,160,32,0.07) 0%, transparent 70%);
+    }
+    .note-wrap { max-width: 680px; }
+
+    /* ============================================================
+       CTA / NEWSLETTER
+    ============================================================ */
+    .cta-section {
+      background: var(--bg);
+      padding: var(--section-pad) var(--pad-x) calc(var(--section-pad) * 1.4);
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-blob1 {
+      position: absolute; width: 700px; height: 600px;
+      top: -20%; left: -10%;
+      background: radial-gradient(circle, rgba(15,110,86,0.4) 0%, transparent 65%);
+    }
+    .cta-blob2 {
+      position: absolute; width: 500px; height: 500px;
+      bottom: -20%; right: -5%;
+      background: radial-gradient(circle, rgba(232,160,32,0.14) 0%, transparent 65%);
+    }
+
+    .cta-inner { max-width: 620px; margin: 0 auto; position: relative; z-index: 1; }
+    .cta-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(29,158,117,0.1);
+      border: 1px solid rgba(29,158,117,0.2);
+      border-radius: 100px; padding: 6px 14px;
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.1em; color: var(--teal); font-weight: 600;
+      margin-bottom: 28px;
+    }
+    .cta-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--amber);
+      animation: dotPulse 2s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .cta-h2 {
+      font-size: clamp(42px,6vw,88px);
+      font-weight: 900; letter-spacing: -0.05em;
+      line-height: 0.93; margin-bottom: 24px;
+    }
+    .cta-sub {
+      font-size: 16px; line-height: 1.65;
+      color: var(--text-dim); max-width: 460px;
+      margin: 0 auto 40px;
+    }
+
+    .cta-form {
+      display: flex; gap: 10px;
+      max-width: 460px; margin: 0 auto;
+    }
+    .cta-form input {
+      flex: 1; padding: 14px 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text); font-family: var(--font-outfit);
+      font-size: 15px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .cta-form input:focus { border-color: rgba(232,160,32,0.4); }
+    .cta-form input::placeholder { color: var(--text-faint); }
+    .cta-form button {
+      padding: 14px 24px;
+      background: var(--amber);
+      border: none; border-radius: 14px;
+      color: var(--amber-ink); font-family: var(--font-outfit);
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .cta-form button:hover { background: var(--amber-deep); transform: translateY(-1px); }
+    @media (max-width: 500px) {
+      .cta-form { flex-direction: column; }
+    }
+
+    .cta-msg {
+      min-height: 1px; margin-top: 14px;
+      font-family: var(--font-mono); font-size: 13px;
+      color: var(--green);
+    }
+    .cta-fine {
+      margin-top: 20px; font-size: 12px;
+      color: var(--text-faint); letter-spacing: 0.02em;
+    }
+
+    /* social links */
+    .cta-social {
+      margin-top: 40px; display: flex;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    .cta-social-label { font-size: 13px; color: var(--text-faint); }
+    .cta-social-links { display: flex; gap: 16px; }
+    .cta-social-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 13px; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .cta-social-links a:hover { color: var(--amber); }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .v2-footer {
+      border-top: 1px solid var(--border);
+      padding: 48px var(--pad-x) 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .v2-footer-brand {
+      font-size: 18px; font-weight: 800; letter-spacing: -0.04em;
+      color: rgba(255,255,255,0.15);
+    }
+    .v2-footer-copy { font-size: 12px; color: var(--text-faint); }
+    .v2-footer-links { display: flex; gap: 20px; }
+    .v2-footer-links a {
+      font-size: 12px; color: var(--text-faint); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .v2-footer-links a:hover { color: var(--text-dim); }
+
+  </style>
+</head>
+<body>
+
+  <div id="scroll-progress"></div>
+
+  <!-- ============================================================
+       NAV
+  ============================================================ -->
+  <nav class="v2-nav" id="v2-nav">
+    <a href="#" class="v2-nav-brand">grubshelf</a>
+    <ul class="v2-nav-links">
+      <li><a href="#v2-features">Features</a></li>
+      <li><a href="#v2-hiw">How it works</a></li>
+      <li><a href="#v2-cta" class="v2-nav-cta">Join waitlist</a></li>
+    </ul>
+  </nav>
+
+  <h1 class="sr-only">GrubShelf — the pantry app that tracks expiry dates and turns what's already in your fridge into a shopping list.</h1>
+
+  <!-- ============================================================
+       HERO (parallax + scroll story built entirely by hero-v3.js;
+       purely decorative, so it's hidden from assistive tech — the
+       actual page content starts at the Problem section below)
+  ============================================================ -->
+  <div class="hero" id="top" aria-hidden="true">
+    <div class="hero-sticky"></div>
+  </div>
+
+  <!-- ============================================================
+       PROBLEM
+  ============================================================ -->
+  <section class="v2-section problem-section" id="v2-problem">
+    <div class="problem-blobs">
+      <div class="aurora-blob pb1"></div>
+      <div class="aurora-blob pb2"></div>
+    </div>
+
+    <div class="v2-wrap">
+      <div class="problem-top">
+        <div class="reveal">
+          <span class="eyebrow">The problem</span>
+          <h2 class="v2-h2">You're losing<br /><span class="accent-amber">money every week</span><br />without noticing.</h2>
+        </div>
+        <div class="reveal" style="transition-delay:0.1s">
+          <p class="v2-lead" style="margin-bottom:24px">The spinach you forgot about. The avocados you bought twice. The leftovers that quietly became biology experiments. It adds up.</p>
+          <p class="v2-lead">GrubShelf fixes this quietly — no meal planning homework, no daily nagging. Just the right nudge at the right time.</p>
+        </div>
+      </div>
+
+      <div class="problem-stat-grid">
+        <div class="stat-card reveal">
+          <div class="stat-num amber" data-count="720" data-prefix="£">£0</div>
+          <div class="stat-label">the average UK household wastes in food every year</div>
+        </div>
+        <div class="stat-card reveal" style="transition-delay:0.1s">
+          <div class="stat-num red" data-count="30" data-suffix="%">0%</div>
+          <div class="stat-label">of groceries bought end up in the bin, uneaten</div>
+        </div>
+        <div class="stat-card reveal" style="transition-delay:0.2s">
+          <div class="stat-num" data-count="3" data-suffix="×">0×</div>
+          <div class="stat-label">most people check the fridge <em>after</em> they've already bought duplicates</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FEATURES BENTO
+  ============================================================ -->
+  <section class="v2-section features-section" id="v2-features">
+    <div class="aurora-blob features-blob"></div>
+
+    <div class="v2-wrap">
+      <div class="v2-center reveal">
+        <span class="eyebrow">Features</span>
+        <h2 class="v2-h2">Three things,<br />done <span class="accent-teal">properly.</span></h2>
+        <p class="v2-lead">Pantry, alerts, list. Each one feeds the next — so nothing slips through the cracks, or the back of the fridge.</p>
+      </div>
+
+      <div class="bento-grid">
+
+        <!-- Card 1: Pantry (wide) -->
+        <div class="bento-card bc-1 reveal">
+          <div class="bento-icon bi-teal">🧺</div>
+          <div class="bento-title">Pantry that knows itself</div>
+          <div class="bento-desc">Scan a receipt once and everything lands: matched, counted, dated. See what's fresh, what's low, what's about to turn — all in one screen.</div>
+          <div class="bento-ui">
+            <div class="bui-row">
+              <div class="bui-left"><span class="bui-e">🥬</span><span class="bui-name">Spinach</span></div>
+              <div class="bui-bar-wrap"><div class="bui-bar-track"><div class="bui-bar bb-bad"></div></div></div>
+              <span class="bui-tag bt-bad">TODAY</span>
+            </div>
+            <div class="bui-row">
+              <div class="bui-left"><span class="bui-e">🥑</span><span class="bui-name">Avocados</span></div>
+              <div class="bui-bar-wrap"><div class="bui-bar-track"><div class="bui-bar bb-warn"></div></div></div>
+              <span class="bui-tag bt-warn">2 DAYS</span>
+            </div>
+            <div class="bui-row">
+              <div class="bui-left"><span class="bui-e">🥚</span><span class="bui-name">Eggs</span></div>
+              <div class="bui-bar-wrap"><div class="bui-bar-track"><div class="bui-bar bb-good"></div></div></div>
+              <span class="bui-tag bt-good">8 DAYS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Expiry alerts (narrow) -->
+        <div class="bento-card bc-2 reveal" style="transition-delay:0.1s">
+          <div class="bento-icon bi-red">⚡</div>
+          <div class="bento-title">Expiry alerts that matter</div>
+          <div class="bento-desc">One notification, the day before it turns. Not a daily barrage — just the one that actually saves the spinach.</div>
+          <div class="notif-mini">
+            <div class="notif-item">
+              <div class="notif-dot nd-red"></div>
+              <div class="notif-text"><strong>Spinach</strong> expires today. Check your fridge.</div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot nd-amber"></div>
+              <div class="notif-text"><strong>Cheddar</strong> expires tomorrow — 2 servings left.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Shopping list -->
+        <div class="bento-card bc-3 reveal" style="transition-delay:0.15s">
+          <div class="bento-icon bi-teal">🛒</div>
+          <div class="bento-title">Shopping list</div>
+          <div class="bento-desc">Knows what you already have. No more buying a fourth bottle of olive oil.</div>
+          <div class="list-mini">
+            <div class="li-row">
+              <div class="li-check"></div>
+              Milk
+            </div>
+            <div class="li-row">
+              <div class="li-check"></div>
+              Greek yoghurt
+            </div>
+            <div class="li-row got">
+              <div class="li-check done"></div>
+              Olive oil
+              <span class="li-badge">have it</span>
+            </div>
+            <div class="li-row">
+              <div class="li-check"></div>
+              Avocados
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bento-secondary reveal" style="transition-delay:0.2s">
+        <span class="bento-secondary-label">Also in the app</span>
+        <div class="bento-secondary-grid">
+          <div class="bento-mini">
+            <div class="bento-mini-icon bi-amber">💷</div>
+            <div class="bento-mini-body">
+              <div class="bento-mini-title">Spend tracking</div>
+              <div class="bento-mini-desc">Set a budget, log each shop via receipt scan. See where the money actually goes.</div>
+            </div>
+          </div>
+          <div class="bento-mini">
+            <div class="bento-mini-icon bi-white">👨‍👩‍👧</div>
+            <div class="bento-mini-body">
+              <div class="bento-mini-title">Family sync</div>
+              <div class="bento-mini-desc">Pantry and list sync across the household — when your partner adds milk, you see it.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       HOW IT WORKS
+  ============================================================ -->
+  <section class="v2-section hiw-section" id="v2-hiw">
+    <div class="aurora-blob hiw-blob"></div>
+    <div class="v2-wrap">
+      <div class="reveal">
+        <span class="eyebrow">How it works</span>
+        <h2 class="v2-h2">Up and running<br />in <span class="accent-teal">under 3 minutes.</span></h2>
+      </div>
+
+      <div class="hiw-layout">
+        <div class="hiw-steps" id="hiw-steps">
+          <div class="hiw-step active reveal" data-panel="0">
+            <span class="hiw-step-num">01</span>
+            <div class="hiw-step-body">
+              <div class="hiw-step-title">Scan your receipt</div>
+              <div class="hiw-step-desc">Take a photo of any grocery receipt. We read it, match every item to a real product, and add it to your pantry — dated and counted. On the first scan you confirm a couple of things; after that it's instant.</div>
+            </div>
+          </div>
+          <div class="hiw-step reveal" data-panel="1" style="transition-delay:0.1s">
+            <span class="hiw-step-num">02</span>
+            <div class="hiw-step-body">
+              <div class="hiw-step-title">Get the nudge before it turns</div>
+              <div class="hiw-step-desc">One notification, the evening before something expires. Not a barrage — just the single alert that actually saves the spinach and prompts you to use the cheddar.</div>
+            </div>
+          </div>
+          <div class="hiw-step reveal" data-panel="2" style="transition-delay:0.2s">
+            <span class="hiw-step-num">03</span>
+            <div class="hiw-step-body">
+              <div class="hiw-step-title">Shop without guessing</div>
+              <div class="hiw-step-desc">Your shopping list knows what's already in your pantry. Items you have show up dimmed with a "have it" tag. You leave the store with what you need — not what you already have.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hiw-phone-wrap reveal" style="transition-delay:0.15s">
+          <div class="hiw-phone">
+            <div class="hiw-notch"></div>
+            <div class="hiw-screen">
+
+              <!-- Panel 0: scan -->
+              <div class="hiw-screen-panel active" id="hiw-panel-0">
+                <div style="font-family:var(--font-outfit);font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.02em;margin-bottom:12px">Add items</div>
+                <div class="panel-receipt">
+                  <div class="panel-receipt-icon">📄</div>
+                  <div class="panel-receipt-label">RECEIPT DETECTED</div>
+                  <div class="panel-receipt-items">
+                    <div class="pri"><span>🥬 Spinach · 200g</span><span style="color:var(--teal)">matched</span></div>
+                    <div class="pri"><span>🥑 Avocados · 3pk</span><span style="color:var(--teal)">matched</span></div>
+                    <div class="pri"><span>🧀 Cheddar · 400g</span><span style="color:var(--teal)">matched</span></div>
+                    <div class="pri"><span>🥚 Eggs · 12pk</span><span style="color:var(--teal)">matched</span></div>
+                  </div>
+                </div>
+                <div style="margin-top:12px;background:var(--amber);border-radius:12px;padding:12px;text-align:center;font-size:13px;font-weight:700;color:var(--amber-ink)">Add 4 items to pantry →</div>
+              </div>
+
+              <!-- Panel 1: alerts -->
+              <div class="hiw-screen-panel" id="hiw-panel-1">
+                <div style="font-family:var(--font-outfit);font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.02em;margin-bottom:12px">Expiring soon</div>
+                <div class="panel-alert-list">
+                  <div class="pal-item">
+                    <div class="pal-left"><span class="pal-e">🥬</span><span class="pal-name">Spinach</span></div>
+                    <span class="pal-badge pb-bad">TODAY</span>
+                  </div>
+                  <div class="pal-item">
+                    <div class="pal-left"><span class="pal-e">🥑</span><span class="pal-name">Avocados</span></div>
+                    <span class="pal-badge pb-warn">2 DAYS</span>
+                  </div>
+                  <div class="pal-item">
+                    <div class="pal-left"><span class="pal-e">🧀</span><span class="pal-name">Cheddar</span></div>
+                    <span class="pal-badge pb-warn">TOMORROW</span>
+                  </div>
+                  <div class="pal-item">
+                    <div class="pal-left"><span class="pal-e">🥚</span><span class="pal-name">Eggs</span></div>
+                    <span class="pal-badge pb-good">8 DAYS</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 2: shop list -->
+              <div class="hiw-screen-panel" id="hiw-panel-2">
+                <div style="font-family:var(--font-outfit);font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.02em;margin-bottom:12px">Shopping list</div>
+                <div class="panel-shop-list">
+                  <div class="psl-item">
+                    <div class="psl-cb"></div>
+                    <span class="psl-name">🥛 Oat milk</span>
+                  </div>
+                  <div class="psl-item">
+                    <div class="psl-cb"></div>
+                    <span class="psl-name">🥬 Spinach</span>
+                  </div>
+                  <div class="psl-item got">
+                    <div class="psl-cb done"></div>
+                    <span class="psl-name">🫒 Olive oil</span>
+                    <span class="psl-have">have it</span>
+                  </div>
+                  <div class="psl-item">
+                    <div class="psl-cb"></div>
+                    <span class="psl-name">🍞 Bread</span>
+                  </div>
+                  <div class="psl-item got">
+                    <div class="psl-cb done"></div>
+                    <span class="psl-name">🧀 Cheddar</span>
+                    <span class="psl-have">have it</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       WHY WE'RE BUILDING THIS
+  ============================================================ -->
+  <section class="v2-section note-section" id="v2-note">
+    <div class="aurora-blob note-blob"></div>
+    <div class="v2-wrap note-wrap reveal">
+      <span class="eyebrow">Why we're building this</span>
+      <h2 class="v2-h2">We got tired of<br /><span class="accent-teal">throwing food away too.</span></h2>
+      <p class="v2-lead">GrubShelf started the same way most of these things do — buying spinach with good intentions, forgetting it existed, binning it a week later. We're a small team building the app we wished we had: one that quietly tells you what's about to go off, and turns your pantry into a shopping list that already knows what you have.</p>
+      <p class="v2-lead" style="margin-top:16px">We're pre-launch and building this in the open — no customers yet, just us eating our own cooking. The waitlist below is genuinely the best way to see it first.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CTA / NEWSLETTER
+  ============================================================ -->
+  <section class="v2-section cta-section" id="v2-cta">
+    <div class="aurora-blob cta-blob1"></div>
+    <div class="aurora-blob cta-blob2"></div>
+    <div class="noise"></div>
+
+    <div class="cta-inner reveal">
+      <div class="cta-badge">
+        <div class="cta-badge-dot"></div>
+        iOS · Building for launch
+      </div>
+      <h2 class="cta-h2">First in line<br /><span class="accent-teal">when we launch.</span></h2>
+      <p class="cta-sub">Join the waitlist and we'll email you the moment the iOS app goes live — plus the odd money-saving trick along the way. No fluff, no daily nagging.</p>
+
+      <form class="cta-form" id="v2-cta-form">
+        <input type="email" required placeholder="your@email.com" autocomplete="email" aria-label="Email address" />
+        <button type="submit">Reserve my spot →</button>
+      </form>
+      <p class="cta-msg" id="v2-cta-msg"></p>
+      <p class="cta-fine">First to know at launch · No spam · Unsubscribe any time</p>
+
+      <div class="cta-social">
+        <span class="cta-social-label">Not ready for email?</span>
+        <div class="cta-social-links">
+          <a href="https://www.instagram.com/grubshelf?igsh=MWlvY2cybXN2cThicA%3D%3D&utm_source=qr" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.tiktok.com/@grubshelf" target="_blank" rel="noopener">TikTok</a>
+          <a href="https://x.com/grubshelf" target="_blank" rel="noopener">Twitter / X</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer class="v2-footer">
+    <span class="v2-footer-brand">grubshelf</span>
+    <span class="v2-footer-copy">© 2026 grubshelf · pantry, list, spend</span>
+    <div class="v2-footer-links">
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       SCRIPTS
+  ============================================================ -->
+  <script src="hero-v3.js"></script>
+
+  <script>
+  (function () {
+
+    /* ── Scroll progress ── */
+    const prog = document.getElementById('scroll-progress');
+    window.addEventListener('scroll', () => {
+      const h = document.documentElement.scrollHeight - innerHeight;
+      prog.style.width = (h > 0 ? Math.min(scrollY / h * 100, 100) : 0) + '%';
+    }, { passive: true });
+
+    /* ── Nav: hidden over the hero, fades in once you've scrolled past it ── */
+    const nav = document.getElementById('v2-nav');
+    const heroEl = document.querySelector('.hero');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', scrollY > 60);
+      const heroScrollable = heroEl ? heroEl.offsetHeight - innerHeight : 0;
+      nav.classList.toggle('visible', scrollY > heroScrollable - 150);
+    }, { passive: true });
+
+    /* ── Reveal on scroll ── */
+    const ro = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); ro.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+    /* ── Counter animation ── */
+    function animateCount(el) {
+      const target = +el.dataset.count;
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      let start = null;
+      const dur = 1800;
+      function step(ts) {
+        // Guard against a non-numeric timestamp (e.g. an rAF override that
+        // doesn't pass one) — without this, start/p/ease all collapse to NaN
+        // and the counter is stuck showing "NaN" forever.
+        if (typeof ts !== 'number') ts = performance.now();
+        if (start === null) start = ts;
+        const p = Math.min((ts - start) / dur, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = prefix + Math.round(ease * target) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    const cro = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animateCount(e.target); cro.unobserve(e.target); }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('[data-count]').forEach(el => cro.observe(el));
+
+    /* ── How it works step switcher ── */
+    const steps = document.querySelectorAll('.hiw-step');
+    const panels = document.querySelectorAll('.hiw-screen-panel');
+    steps.forEach((step, i) => {
+      step.addEventListener('click', () => {
+        steps.forEach(s => s.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        step.classList.add('active');
+        panels[i] && panels[i].classList.add('active');
+      });
+    });
+
+    /* Auto-cycle HIW */
+    let hiwIdx = 0;
+    setInterval(() => {
+      hiwIdx = (hiwIdx + 1) % steps.length;
+      steps.forEach(s => s.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      steps[hiwIdx].classList.add('active');
+      panels[hiwIdx].classList.add('active');
+    }, 4000);
+
+    /* ── Newsletter form ── */
+    async function handleForm(form, msgEl) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button');
+        const email = form.querySelector('input[type="email"]').value.trim();
+        btn.disabled = true;
+        btn.textContent = 'Joining…';
+        try {
+          const res = await fetch('/api/newsletter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            msgEl.textContent = data.message || 'You\'re on the list. ✓';
+            msgEl.style.color = '#1d9e75';
+            form.querySelector('input[type="email"]').value = '';
+          } else {
+            msgEl.textContent = data.error || 'Something went wrong. Try again.';
+            msgEl.style.color = '#dc4545';
+          }
+        } catch (_) {
+          msgEl.textContent = 'Network error. Please try again.';
+          msgEl.style.color = '#dc4545';
+        }
+        btn.disabled = false;
+        btn.textContent = 'Reserve my spot →';
+      });
+    }
+
+    const ctaForm = document.getElementById('v2-cta-form');
+    const ctaMsg  = document.getElementById('v2-cta-msg');
+    if (ctaForm && ctaMsg) handleForm(ctaForm, ctaMsg);
+
+    /* Hero phone scroll morph (floating items -> list) lives in hero-v3.js */
+
+  })();
+  </script>
+</body>
+</html>
