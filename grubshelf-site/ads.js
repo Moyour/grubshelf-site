@@ -114,7 +114,7 @@
   }
 
   function attachCtaClickTracking() {
-    var links = document.querySelectorAll('a[href="#vf-waitlist"]');
+    var links = document.querySelectorAll('a[href="#vf-waitlist"], a[href="#v2-cta"]');
     links.forEach(function (link, index) {
       link.addEventListener("click", function () {
         trackCtaClick(link.className || "cta-" + index);
